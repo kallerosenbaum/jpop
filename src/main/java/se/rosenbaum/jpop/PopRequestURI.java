@@ -2,6 +2,7 @@ package se.rosenbaum.jpop;
 
 import org.bitcoinj.core.AddressFormatException;
 import org.bitcoinj.core.Base58;
+import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Sha256Hash;
 
 import java.io.Serializable;
@@ -15,7 +16,24 @@ public class PopRequestURI implements Serializable {
     private String message;
     private Sha256Hash txid;
     private String p;
-    private String r;
+
+    public PopRequestURI(PopRequest request) {
+        if (request.getNonce() == null) {
+            throw new IllegalArgumentException("Nonce must not be null!");
+        }
+        n = request.getNonce();
+        if (request.getDestination() == null) {
+            throw new IllegalArgumentException("Destination must not be null!");
+        }
+        p = request.getDestination();
+        if (request.getAmount() != null) {
+            amountSatoshis = request.getAmount().longValue();
+        }
+        label = request.getLabel();
+        message = request.getMessage();
+        txid = request.getTxid();
+
+    }
 
     public PopRequestURI(String input) {
         if (!input.startsWith("btcpop:?")) {
@@ -64,11 +82,6 @@ public class PopRequestURI implements Serializable {
                     throw new IllegalArgumentException("Pop URL must not be empty");
                 }
                 p = value;
-            } else if ("r".equals(key)) {
-                if (value == null) {
-                    throw new IllegalArgumentException("r must not be empty");
-                }
-                r = value;
             } else if ("label".equals(key)) {
                 label = value;
             } else if ("message".equals(key)) {
@@ -103,8 +116,8 @@ public class PopRequestURI implements Serializable {
                 txid = Sha256Hash.wrap(bytes);
             }
         }
-        if (r == null && (p == null || n == null)) {
-            throw new IllegalArgumentException("p and n must be set if r is unset");
+        if (p == null || n == null) {
+            throw new IllegalArgumentException("p and n must be set");
         }
     }
 
@@ -120,12 +133,39 @@ public class PopRequestURI implements Serializable {
         return label;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
     public Sha256Hash getTxid() {
         return txid;
     }
 
     public String getP() {
         return p;
+    }
+
+    public String toURIString() {
+        StringBuffer result = new StringBuffer("btcpop:?p=");
+        result.append(PopURIEncodeDecode.popURIEncode(getP()));
+        addParameter("n", Base58.encode(getN()), result);
+        if (getTxid() != null) {
+            addParameter("txid", Base58.encode(getTxid().getBytes()), result);
+        }
+        if (getLabel() != null) {
+            addParameter("label", getLabel(), result);
+        }
+        if (getMessage() != null) {
+            addParameter("message", getMessage(), result);
+        }
+        if (getAmountSatoshis() != null) {
+            addParameter("amount", Coin.valueOf(getAmountSatoshis()).toPlainString(), result);
+        }
+        return result.toString();
+    }
+
+    private void addParameter(String key, String unencodedValue, StringBuffer result) {
+        result.append('&').append(key).append('=').append(PopURIEncodeDecode.popURIEncode(unencodedValue));
     }
 
     public String toString() {

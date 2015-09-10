@@ -15,8 +15,12 @@ public class Pop extends Transaction {
     private static final int POP_LOCK_TIME = 499999999;
     private static final long POP_SEQ_NR = 0L;
 
-    public Pop(NetworkParameters params, byte[] payloadBytes, byte[] nonce) throws ProtocolException {
+    public Pop(NetworkParameters params, byte[] payloadBytes) {
         super(params, payloadBytes);
+    }
+
+    public Pop(NetworkParameters params, byte[] payloadBytes, byte[] nonce) throws ProtocolException {
+        this(params, payloadBytes);
         Sha256Hash txidToProve = getHash();
         setLockTime(POP_LOCK_TIME);
         for (TransactionInput input : getInputs()) {

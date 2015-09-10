@@ -3,9 +3,15 @@ package se.rosenbaum.jpop;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Sha256Hash;
 
-public class PopRequest {
+import java.io.Serializable;
+
+public class PopRequest implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private byte[] nonce;
+
+    private String destination;
 
     private String label;
 
@@ -21,6 +27,14 @@ public class PopRequest {
 
     public void setNonce(byte[] nonce) {
         this.nonce = nonce;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
 
     public String getLabel() {
