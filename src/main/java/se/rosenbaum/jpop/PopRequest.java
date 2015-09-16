@@ -5,6 +5,10 @@ import org.bitcoinj.core.Sha256Hash;
 
 import java.io.Serializable;
 
+/**
+ * This is just a simple data container representing a PopRequest. This can then be represented differently depending on
+ * how it is going to be transfered to the proving party. Eg PopRequestURI for BIP121 representation.
+ */
 public class PopRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;

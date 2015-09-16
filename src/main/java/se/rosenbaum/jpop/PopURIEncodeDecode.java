@@ -4,7 +4,19 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
+/**
+ * This will encode and decode strings for use in BIP121 URIs.
+ */
 public class PopURIEncodeDecode {
+
+    /**
+     * This will URLencode certain characters in the supplied value. Note that the whole value will NOT be URLEncoded,
+     * because a BIP121 URI is NOT a URL, and thus can support more characters than a URL. For example, the characters
+     * '/', ' ' and '?' are perfectly fine in BIP121 values. This helps in keeping the URIs short as discussed in the
+     * BIP.
+     * @param value
+     * @return
+     */
     static String popURIEncode(String value) {
         try {
             if (value == null) {

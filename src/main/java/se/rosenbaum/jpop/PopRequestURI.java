@@ -9,6 +9,10 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.StringTokenizer;
 
+/**
+ * This is an implementation of BIP121 (https://github.com/bitcoin/bips/blob/master/bip-0121.mediawiki), "Proof
+ * of Payment URI scheme". For details on how to interpret the properties of this class, please see BIP121.
+ */
 public class PopRequestURI implements Serializable {
     private byte[] n;
     private Long amountSatoshis;
@@ -17,6 +21,12 @@ public class PopRequestURI implements Serializable {
     private Sha256Hash txid;
     private String p;
 
+    /**
+     * This constructor is typically intended for the validating party, who constructs a PopRequest and generates
+     * a PopRequestURI from that. The URI is then transfered to the proving party, by getting the string representation
+     * of the URI with toURIString.
+     * @param request The PopRequest that this URI should represent.
+     */
     public PopRequestURI(PopRequest request) {
         if (request.getNonce() == null) {
             throw new IllegalArgumentException("Nonce must not be null!");
@@ -35,6 +45,11 @@ public class PopRequestURI implements Serializable {
 
     }
 
+    /**
+     * This constructor is typically intended for the proving party upon reception of a URI.
+     *
+     * @param input the URI string as receveived from the validating party.
+     */
     public PopRequestURI(String input) {
         if (!input.startsWith("btcpop:?")) {
             throw new IllegalArgumentException("URI must start with 'btcpop:?':" + input);
@@ -145,6 +160,10 @@ public class PopRequestURI implements Serializable {
         return p;
     }
 
+    /**
+     * This will return a string representation of the URI. This string can then be used to request a PoP from the
+     * other party.
+     */
     public String toURIString() {
         StringBuffer result = new StringBuffer("btcpop:?p=");
         result.append(PopURIEncodeDecode.popURIEncode(getP()));

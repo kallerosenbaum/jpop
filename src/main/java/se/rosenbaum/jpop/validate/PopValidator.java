@@ -15,18 +15,33 @@ import se.rosenbaum.jpop.Pop;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * This class validates a PoP according to BIP120 (as in section "Validating a PoP" of https://github.com/bitcoin/bips/blob/master/bip-0120.mediawiki)
+ */
 public class PopValidator {
     private static final long LOCK_TIME = 499999999;
     Logger logger = LoggerFactory.getLogger(PopValidator.class);
     TransactionStore transactionStore;
 
+    /**
+     *
+     * @param transactionStore The validator will need access to few transactions upon validating a Pop. First, it's
+     *                         the proven transaction, second it's the input transactions of the proven transaction. All
+     *                         these transactions must be available through the transactionStore.
+     */
     public PopValidator(TransactionStore transactionStore) {
         this.transactionStore = transactionStore;
     }
 
     /**
      * This will check the PoP according to the
-     * <a href="https://github.com/kallerosenbaum/poppoc/wiki/Proof-of-Payment">specification</a>
+     * <a href="https://github.com/bitcoin/bips/blob/master/bip-0120.mediawiki">specification</a>
+     * Note that step 7 and 8 in the specification is not performed by this method. It should instead be done by the
+     * user of this class AFTER this method is called.
+     * @param pop The pop to validate
+     * @param nonce The requested nonce to be checked against the nonce in the PoP
+     * @return the transaction that the pop proves.
+     * @throws InvalidPopException If the pop is invalid.
      */
     public Transaction validatePop(Pop pop, byte[] nonce) throws InvalidPopException {
         // 1 Basic checks
@@ -75,6 +90,12 @@ public class PopValidator {
         return localTransaction;
     }
 
+    /**
+     * The last 6 bytes of the pop output is the nonce
+     * @param data the full 41 bytes pop output script
+     * @param popRequestNonce The requested nonce to be checked against the nonce in the PoP
+     * @throws InvalidPopException
+     */
     private void checkNonce(byte[] data, byte[] popRequestNonce) throws InvalidPopException {
         byte[] nonceBytes = new byte[6];
         System.arraycopy(data, 35, nonceBytes, 0, 6);
@@ -84,6 +105,11 @@ public class PopValidator {
         }
     }
 
+    /**
+     * This implements step 5 and 6 of the validation process. Inputs of the PoP must match the inputs of the proven
+     * transaction and the sequence numbers must all be 0. Finally the scripts are executed on all inputs. All
+     * scripts must return true for the pop to be valid.
+     */
     private void checkInputsAndSignatures(Pop pop, Transaction provenTransaction) throws InvalidPopException {
         List<TransactionInput> popInputs = pop.getInputs();
         List<TransactionInput> blockchainTxInputs = provenTransaction.getInputs();
@@ -92,7 +118,7 @@ public class PopValidator {
         }
 
         for (int i = 0; i < blockchainTxInputs.size(); i++) {
-            // Here I check that the inputs of the pop are in the same order
+            // Here we check that the inputs of the pop are in the same order
             // as in the payment transaction.
             TransactionInput popInput = popInputs.get(i);
             TransactionInput bcInput = blockchainTxInputs.get(i);
@@ -108,11 +134,11 @@ public class PopValidator {
 
         for (int i = 0; i < blockchainTxInputs.size(); i++) {
             TransactionInput popInput = popInputs.get(i);
-            TransactionInput bcInput = blockchainTxInputs.get(i);
+            TransactionInput txInput = blockchainTxInputs.get(i);
             // Check signature
-            if (bcInput.getConnectedOutput() == null || popInput.getConnectedOutput() == null) {
+            if (txInput.getConnectedOutput() == null || popInput.getConnectedOutput() == null) {
                 // connect the input to the right transaction:
-                Sha256Hash hash = bcInput.getOutpoint().getHash();
+                Sha256Hash hash = txInput.getOutpoint().getHash();
                 Transaction inputTx = transactionStore.getTransaction(hash);
 
                 if (inputTx == null) {
@@ -120,7 +146,7 @@ public class PopValidator {
                     logger.debug(message);
                     throw new InvalidPopException(message);
                 }
-                bcInput.connect(inputTx, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
+                txInput.connect(inputTx, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
                 popInput.connect(inputTx, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
             }
             try {
@@ -132,10 +158,16 @@ public class PopValidator {
         }
     }
 
+    /**
+     * The pop output must have the format "OP_RETURN <version 2 bytes> <38 bytes txid+nonce>"
+     * @param pop
+     * @return
+     * @throws InvalidPopException
+     */
     private byte[] checkOutput(Pop pop) throws InvalidPopException {
         List<TransactionOutput> outputs = pop.getOutputs();
         if (outputs == null || outputs.size() != 1) {
-            throw new InvalidPopException("Wrong number of outputs. Expected at least 2.");
+            throw new InvalidPopException("Wrong number of outputs. Expected 1.");
         }
         TransactionOutput output = outputs.get(0);
 

@@ -8,6 +8,9 @@ import se.rosenbaum.jpop.Pop;
 
 import java.util.List;
 
+/**
+ * This is the class to use for the proving party.
+ */
 public class PopGenerator {
     private Wallet payerWallet;
 
@@ -30,6 +33,9 @@ public class PopGenerator {
             throw new NullPointerException("Transaction must not be null");
         }
         Pop pop = new Pop(payerWallet.getParams(), transaction.bitcoinSerialize(), nonce);
+
+        // In order to sign the PoP, all inputs must be connected. This is done by copying the connected outputs from
+        // the proven transaction to the Pop.
         List<TransactionInput> txInputs = transaction.getInputs();
         long inputSize = txInputs.size();
         for (int i = 0; i < inputSize; i++) {
@@ -43,6 +49,7 @@ public class PopGenerator {
         }
 
         try {
+            // The PoP is signed using the exact same signing as for an ordinary transaction
             payerWallet.signTransaction(Wallet.SendRequest.forTx(pop));
         } catch (Exception e) {
             throw new PopGenerationException("Could not sign pop", e);
