@@ -11,6 +11,8 @@
         <junit.version>4.8.2</junit.version>
         <easymock.version>3.2</easymock.version>
         <maven-release-plugin.version>2.5.2</maven-release-plugin.version>
+        <github-repo>jpop</github-repo>
+        <github-user>kallerosenbaum</github-user>
     </properties>
 
     <dependencies>
@@ -46,7 +48,11 @@
             </plugin>
         </plugins>
     </build>
+
     <scm>
-        <developerConnection>scm:git:ssh://git@github.com:kallerosenbaum/jpop.git</developerConnection>
+        <connection>scm:git:https://github.com/{github-user}/{github-repo}.git</connection>
+        <developerConnection>scm:git:git@github.com:{github-user}/{github-repo}.git</developerConnection>
+        <url>https://github.com/{github-user}/{github-repo}</url>
+        <tag>HEAD</tag>
     </scm>
 </project>
