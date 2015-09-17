@@ -4,7 +4,7 @@
 
     <groupId>se.rosenbaum</groupId>
     <artifactId>jpop</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <bitcoinj.version>0.13.2</bitcoinj.version>
@@ -61,9 +61,9 @@
     <scm>
         <!--<connection>scm:git:https://github.com/{github-user}/{github-repo}.git</connection>-->
         <!--<developerConnection>scm:git:https://github.com/{github-user}/{github-repo}.git</developerConnection>-->
-        <connection>scm:git:git@github.com:g1${github-user}/apaasdsdf1${github-repo}.git</connection>
-        <developerConnection>scm:git:git@github.com:g2${github-user}/apaasdsdf2${github-repo}.git</developerConnection>
-        <url>https://github.com/g3${github-user}/apaasdsdf3${github-repo}</url>
+        <connection>scm:git:git@github.com:${github-user}/${github-repo}.git</connection>
+        <developerConnection>scm:git:git@github.com:${github-user}/2${github-repo}.git</developerConnection>
+        <url>https://github.com/${github-user}/${github-repo}</url>
         <tag>HEAD</tag>
     </scm>
 </project>
