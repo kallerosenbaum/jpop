@@ -4,7 +4,7 @@
 
     <groupId>se.rosenbaum</groupId>
     <artifactId>jpop</artifactId>
-    <version>0.2</version>
+    <version>0.3-SNAPSHOT</version>
     <name>Proof of Payment library for Java</name>
     <description>A java implementation of BIP120 and BIP121, Proof of Payment. The code depends on bitcoinj
     with scope provided, so it's a requirement that users have bitcoinj on classpath</description>
@@ -140,6 +140,6 @@
         <connection>scm:git:git@github.com:${github-user}/${github-repo}.git</connection>
         <developerConnection>scm:git:git@github.com:${github-user}/${github-repo}.git</developerConnection>
         <url>https://github.com/${github-user}/${github-repo}</url>
-        <tag>jpop-0.2</tag>
+        <tag>jpop-0.1</tag>
     </scm>
 </project>
