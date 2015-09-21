@@ -12,7 +12,7 @@ public class PopURIEncodeDecode {
     /**
      * This will URLencode certain characters in the supplied value. Note that the whole value will NOT be URLEncoded,
      * because a BIP121 URI is NOT a URL, and thus can support more characters than a URL. For example, the characters
-     * '/', ' ' and '?' are perfectly fine in BIP121 values. This helps in keeping the URIs short as discussed in the
+     * '/' and '?' are perfectly fine in BIP121 values. This helps in keeping the URIs short as discussed in the
      * BIP.
      * @param value
      * @return
@@ -34,7 +34,9 @@ public class PopURIEncodeDecode {
                         buffer.append(URLEncoder.encode(new String(new char[]{highSurrogate, c}), "UTF-8"));
                         highSurrogate = null;
                     }
-                } else if (c > '~' || c < ' ' || c == '&' || c == '%' || c == '=' || c == '#') {
+                } else if (c == ' ') {
+                    buffer.append("%20");
+                } else if (isIllegalCharacter(c)) {
                     buffer.append(URLEncoder.encode(c + "", "UTF-8"));
                 } else {
                     buffer.append(c);
@@ -47,6 +49,11 @@ public class PopURIEncodeDecode {
         }
     }
 
+    /**
+     * Will decode the supplied value.
+     * @return The decoded value if successful
+     * @throws IllegalArgumentException if value contains an illegal character, for example '&' or ' '.
+     */
     static String popURIDecode(String value) {
         try {
             if (value == null) {
@@ -63,11 +70,13 @@ public class PopURIEncodeDecode {
                         encodedCharacter = new StringBuffer();
                     }
                     if (chars.length < i+3) {
-                        throw new RuntimeException("Bad format of input "  + value);
+                        throw new IllegalArgumentException("Bad format of input "  + value);
                     }
                     encodedCharacter.append(c);
                     encodedCharacter.append(chars[++i]);
                     encodedCharacter.append(chars[++i]);
+                } else if (isIllegalCharacter(c)) {
+                    throw new IllegalArgumentException("Illegal character " + c + " in input " + value);
                 } else {
                     if (encodedCharacter != null) {
                         result.append(URLDecoder.decode(encodedCharacter.toString(), "UTF-8"));
@@ -84,5 +93,9 @@ public class PopURIEncodeDecode {
             // will not happen. Famous last words.
             return null;
         }
+    }
+
+    private static boolean isIllegalCharacter(char c) {
+        return c < '!' || c == '"' || c == '#' || c == '%' || c == '&' || (c >= '<' && c <= '>')  || (c >= '[' && c <= '^') || c == '`' || (c >= '{' && c <= '}') ||  c > '~';
     }
 }

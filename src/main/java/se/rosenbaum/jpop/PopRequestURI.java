@@ -73,6 +73,7 @@ public class PopRequestURI implements Serializable {
                 throw new IllegalArgumentException("More than 2 '=' characters in: " + token);
             }
             String key = paramPair[0];
+
             String value = null;
             if (paramPair.length == 2) {
                 value = PopURIEncodeDecode.popURIDecode(paramPair[1]);

@@ -19,6 +19,9 @@ import static org.junit.Assert.fail;
 
 public class PopRequestURITest {
 
+    // Note that according to BIP21, the characters '=' and '&' must be %-encoded so they're not included
+    public static final String ALLOWED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~!$'()*+,;:@/?"; // Plus % encoded characters
+
     @Test
     public void testCreateNoParams() {
         testIllegalURI("btcpop:?");
@@ -33,7 +36,16 @@ public class PopRequestURITest {
         }
     }
 
-    @Test
+    private boolean containsOnlyAllowedCharacters(String input) {
+        for (char ch : input.toCharArray()) {
+            if (ALLOWED_CHARS.indexOf(ch) == -1 && ch != '%') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    //@Test
     public void testTest() {
         byte[] bytes = new byte[6];
         System.out.println(Base58.encode(bytes));
@@ -147,6 +159,39 @@ public class PopRequestURITest {
     }
 
     @Test
+    public void testCreateLabelWithUnencodedSpace() {
+        testIllegalURI("btcpop:?p=1&&n=1&label=a b");
+    }
+
+    @Test
+    public void testCreateLabelWithPlus() {
+        PopRequestURI uri = new PopRequestURI("btcpop:?p=1&n=1&label=a+b");
+        assertEquals("a+b", uri.getLabel());
+    }
+
+    @Test
+    public void testCreateLabelWithEncodedSpace() {
+        PopRequestURI uri = new PopRequestURI("btcpop:?p=1&&n=1&label=a%20b");
+        assertEquals("a b", uri.getLabel());
+    }
+
+    @Test
+    public void testCreateLabelWithUnencodedAmpersand() {
+        testIllegalURI("btcpop:?p=1&&n=1&label=a&b");
+    }
+
+    @Test
+    public void testCreateLabelWithUnencodedEqualsign() {
+        testIllegalURI("btcpop:?p=1&&n=1&label=a=b");
+    }
+
+    @Test
+    public void testCreateLabelWithAllAllowedCharacters() {
+        PopRequestURI uri = new PopRequestURI("btcpop:?p=1&&n=1&label=" + ALLOWED_CHARS);
+        assertEquals(ALLOWED_CHARS, uri.getLabel());
+    }
+
+    @Test
     public void testCreateMinimal() {
         PopRequestURI uri = new PopRequestURI("btcpop:?n=111&p=a");
         assertArrayEquals(new byte[3], uri.getN());
@@ -172,7 +217,7 @@ public class PopRequestURITest {
         // Note that literal ? is ok, as well as :. No need to %-encode them
         String encoded = URLEncoder.encode("http://a.example.com/Å/ä/ö", "UTF-8");
         encoded += "/http://"; // http%3A%2F%2Fa.example.com%2F%C3%85%2F%C3%A4%2F%C3%B6/http://
-        PopRequestURI uri = new PopRequestURI("btcpop:?label=a text&n=111&p=" + encoded);
+        PopRequestURI uri = new PopRequestURI("btcpop:?label=a%20text&n=111&p=" + encoded);
 
         assertEquals("a text", uri.getLabel());
         assertEquals("http://a.example.com/Å/ä/ö/http://", uri.getP());
@@ -236,6 +281,16 @@ public class PopRequestURITest {
 
     @Test
     public void testToURIStringOnlyLabel() {
+        PopRequest popRequest = createPopRequest("dest", b(1, 2, 3), null, "a label å", null, null);
+        PopRequestURI sut = new PopRequestURI(popRequest);
+        String uriString = sut.toURIString();
+
+        PopRequestURI parseResult = new PopRequestURI(uriString);
+        assertURIsEqual(sut, parseResult);
+    }
+
+    @Test
+    public void testToURIStringLabelAllValidChars() {
         PopRequest popRequest = createPopRequest("dest", b(1, 2, 3), null, "a label å", null, null);
         PopRequestURI sut = new PopRequestURI(popRequest);
         String uriString = sut.toURIString();
