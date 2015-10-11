@@ -62,33 +62,14 @@ public class PopURIEncodeDecode {
             StringBuffer result = new StringBuffer();
 
             char[] chars = value.toCharArray();
-            StringBuffer encodedCharacter = null;
             for (int i = 0; i < chars.length; i++) {
                 char c = chars[i];
-                if (c == '%') {
-                    if (encodedCharacter == null) {
-                        encodedCharacter = new StringBuffer();
-                    }
-                    if (chars.length < i+3) {
-                        throw new IllegalArgumentException("Bad format of input "  + value);
-                    }
-                    encodedCharacter.append(c);
-                    encodedCharacter.append(chars[++i]);
-                    encodedCharacter.append(chars[++i]);
-                } else if (isIllegalCharacter(c)) {
+                if (isIllegalCharacter(c) && c != '%') {
                     throw new IllegalArgumentException("Illegal character " + c + " in input " + value);
-                } else {
-                    if (encodedCharacter != null) {
-                        result.append(URLDecoder.decode(encodedCharacter.toString(), "UTF-8"));
-                        encodedCharacter = null;
-                    }
-                    result.append(c);
                 }
             }
-            if (encodedCharacter != null) {
-                result.append(URLDecoder.decode(encodedCharacter.toString(), "UTF-8"));
-            }
-            return result.toString();
+            String valueToDecode = value.replace("+", "%2B");
+            return URLDecoder.decode(valueToDecode, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             // will not happen. Famous last words.
             return null;
