@@ -25,7 +25,9 @@ public class PopRequestURI implements Serializable {
      * This constructor is typically intended for the validating party, who constructs a PopRequest and generates
      * a PopRequestURI from that. The URI is then transfered to the proving party, by getting the string representation
      * of the URI with toURIString.
-     * @param request The PopRequest that this URI should represent.
+     * @param request The PopRequest that this URI should represent. It must contain at least a nonce and a destination.
+     * @throws IllegalArgumentException if there is anything missing in the request. The message will
+     * briefly describe the error.
      */
     public PopRequestURI(PopRequest request) {
         if (request.getNonce() == null) {
@@ -49,6 +51,8 @@ public class PopRequestURI implements Serializable {
      * This constructor is typically intended for the proving party upon reception of a URI.
      *
      * @param input the URI string as receveived from the validating party.
+     * @throws IllegalArgumentException if there is anything wrong with the syntax of input. The message will
+     * briefly describe the error.
      */
     public PopRequestURI(String input) {
         if (!input.startsWith("btcpop:?")) {

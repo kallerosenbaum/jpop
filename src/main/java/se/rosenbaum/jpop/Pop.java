@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 public class Pop extends Transaction {
     private static final int POP_LOCK_TIME = 499999999;
     private static final long POP_SEQ_NR = 0L;
+    private static final int NONCE_LENGTH = 6;
 
     /**
      * This constructor is intended for the validating party. The validator will construct a PoP from an incoming
@@ -36,10 +37,17 @@ public class Pop extends Transaction {
      * transaction to generate a PoP for.
      * @param payloadBytes the raw transaction to generate a PoP for.
      * @param nonce the nonce as requested by the validating party.
-     * @throws ProtocolException
+     * @throws IllegalArgumentException if nonce is null not of length 6
+     * @throws ProtocolException if the payloadBytes is not a pareable transaction.
      */
-    public Pop(NetworkParameters params, byte[] payloadBytes, byte[] nonce) throws ProtocolException {
+    public Pop(NetworkParameters params, byte[] payloadBytes, byte[] nonce) {
         this(params, payloadBytes); // This will create a copy of the transaction to prove
+        if (nonce == null) {
+            throw new IllegalArgumentException("Nonce must not be null.");
+        }
+        if (nonce.length != NONCE_LENGTH) {
+            throw new IllegalArgumentException("Nonce length " + nonce.length + " illegal. Expected " + NONCE_LENGTH + " bytes");
+        }
         Sha256Hash txidToProve = getHash(); // Remember the hash of the transaction to prove
 
         // Now, PoPify this "transaction". Set lock_time and sequence numbers, keep all the inputs, replace all outputs
@@ -49,7 +57,7 @@ public class Pop extends Transaction {
         // it does not ever (well, thousands of years) end up in a block.
         setLockTime(POP_LOCK_TIME);
         for (TransactionInput input : getInputs()) {
-            // Set sequence number to less than ffff so that lock_time has effect.
+            // Set sequence number to 0 (less than ffff, but 0 according to BIP120) so that lock_time has effect.
             input.setSequenceNumber(POP_SEQ_NR);
         }
         clearOutputs();
