@@ -140,6 +140,5 @@
         <connection>scm:git:git@github.com:${github-user}/${github-repo}.git</connection>
         <developerConnection>scm:git:git@github.com:${github-user}/${github-repo}.git</developerConnection>
         <url>https://github.com/${github-user}/${github-repo}</url>
-        <tag>jpop-0.1</tag>
     </scm>
 </project>
